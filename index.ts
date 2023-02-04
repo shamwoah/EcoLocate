@@ -1,28 +1,33 @@
 function initMap() {
-    const latLng = { lat: 43.26071490220645, lng: -79.91971892827242};
+    const myLatLng = { lat: 43.261, lng: -79.920};
 
     const map = new google.maps.Map(document.getElementById("map")!, {
         zoom: 4,
-        center: latLng,
+        center: myLatLng,
+        mapTypeId: 'satellite',
+        mapTypeControl: false,
+        streetViewControl: false,
     });
 
-    let infoWindow = new google.maps.InfoWindow({
-        content: "click for coords",
-        position: latLng,
+    let marker = new google.maps.Marker({
+        map,
+        position: myLatLng,
+        title: myLatLng.lat + ", " + myLatLng.lng,
     });
-
-    infoWindow.open(map);
 
     map.addListener("click", (mapsMouseEvent) => {
-        infoWindow.close();
+        marker.setMap(null);
 
-        infoWindow = new google.maps.InfoWindow({
+        var Location = {
+            lat: <number>mapsMouseEvent.latLng.toJSON()["lat"].toFixed(6),
+            lng: <number>mapsMouseEvent.latLng.toJSON()["lng"].toFixed(6),
+        };
+
+        marker = new google.maps.Marker({
+            map,
             position: mapsMouseEvent.latLng,
+            title: Location.lat + ", " + Location.lng,
         });
-        infoWindow.setContent(
-            JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2)
-        );
-        infoWindow.open(map);
     });
 }
 
@@ -32,4 +37,5 @@ declare global {
     }
 }
 window.initMap = initMap;
+module.exports = {Location};
 export {};
