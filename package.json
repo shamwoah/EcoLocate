@@ -1,13 +1,20 @@
 {
   "devDependencies": {
     "@types/google.maps": "^3.51.1",
+    "concurrently": "^7.6.0",
     "http-server": "^14.1.1"
   },
   "dependencies": {
-    "gulp": "^4.0.2"
+    "gulp": "^4.0.2",
+    "open": "^8.4.0",
+    "sleep-ms": "^2.0.1",
+    "vite": "^4.1.1"
   },
   "scripts": {
-    "start": "npm run open",
-    "open": "concurrently \"http-server -a localhost -p 1234\" \"open http://localhost:1234/build\""
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build --outDir dist --base './'",
+    "test": "tsc --no-emit",
+    "preview": "vite preview"
   }
 }
