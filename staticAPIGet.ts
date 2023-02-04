@@ -11,3 +11,8 @@ const Params = {
 }
 
 const url = new URL(`https://maps.googleapis.com/maps/api/staticmap?center=${Params.coord}&zoom=${Params.zoom}&size=${Params.size}&scale=${Params.scale}&format=${Params.format}&maptype=${Params.maptype}&key=${key}`);
+
+async function getImg(url) {
+    const response = await fetch(url);
+}
+
