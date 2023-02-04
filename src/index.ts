@@ -1,5 +1,3 @@
-import constants from './api_constants.json';
-
 function initMap() {
     const latLng = { lat: 43.26071490220645, lng: -79.91971892827242};
 
@@ -34,3 +32,4 @@ declare global {
     }
 }
 window.initMap = initMap;
+export {};
