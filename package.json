@@ -4,5 +4,8 @@
   },
   "dependencies": {
     "gulp": "^4.0.2"
+  },
+  "scripts": {
+    "start": "node ./src/index.ts"
   }
 }
