@@ -1,4 +1,4 @@
-import data from './src/api_constants.json' assert { type: 'JSON' };
+import data from './api_constants.json' assert { type: 'JSON' };
 const key = data["maps_sdk_key"];
 const {Loc} = require('./index.ts');
 const Params = {
