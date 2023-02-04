@@ -1,11 +1,13 @@
 {
   "devDependencies": {
-    "@types/google.maps": "^3.51.1"
+    "@types/google.maps": "^3.51.1",
+    "http-server": "^14.1.1"
   },
   "dependencies": {
     "gulp": "^4.0.2"
   },
   "scripts": {
-    "start": "node ./src/index.ts"
+    "start": "npm run open",
+    "open": "concurrently \"http-serve -a localhost -p 1234\" \"open http://localhost:1234/build\""
   }
 }
