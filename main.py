@@ -7,6 +7,8 @@ from PIL import Image
 from patchify import patchify
 from keras import backend as K
 import matplotlib.pyplot as plt
+import requests
+from io import BytesIO
 
 # =======================================================
 # training metrics
@@ -65,7 +67,7 @@ def display_images(instances, rows=2, titles=None):
     # show the figure
     plt.show()
 
-path = './NNs/satelite_processing/models/segmentation.hdf5'
+path = './NNs/satelite_processing/models/final.hdf5'
 custom_objects={'iou_coefficient': iou_coefficient, 'jaccard_index': jaccard_index}
 
 model = tf.keras.models.load_model(path, custom_objects)
@@ -105,8 +107,11 @@ def load_single_image_and_patchify(img_path):
 
     return instances
 
-def predict(img_path):
-    instances = np.array(load_single_image_and_patchify(img_path));
+def predict(img_url):
+    response = requests.get(img_url)
+    img = Image.open(BytesIO(response.content))
+
+    instances = np.array(load_single_image_and_patchify(img));
     for i in range(len(instances)):
 
         #extract test input image
@@ -121,16 +126,9 @@ def predict(img_path):
         # convert softmax probabilities to integer values
         predicted_img = np.argmax(prediction, axis=-1)
 
-        # convert integer encoding to rgb values (DEBUG)
+        # convert integer encoding to rgb values
         rgb_image = rgb_encode_mask(predicted_img)
-
-        # visualize model predictions (DEBUG)
-        display_images(
-            [test_img, rgb_image, rgb_image],
-            rows=1, titles=['Aerial', 'Prediction again lmao', 'Prediction']
-        )
         
-        return predicted_img
+        return rgb_image
 
-predicted_img = predict("./training_data/images/test.png")
 

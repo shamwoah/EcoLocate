@@ -32,14 +32,9 @@ class MaskColorMap(Enum):
     Barren=(159, 129, 183)
     Forest=(0, 255, 0)
     Agricultural=(255, 195, 128)
-
-class energyTypes(Enum):
-    Solar = (255, 255, 0)
-    Wind = (52, 143, 235)
-    VWind = (52, 235, 143)
-
-def processMask(image, energyType):
-    if(energyType == energyTypes.Solar):
+    
+def processMask(mapImage, image, energyType):
+    if(energyType == "Solar"):
         image[np.all(image==Background, axis = -1)] = (0,0,0)
         image[np.all(image==Building, axis = -1)] = (255, 255, 0)
         image[np.all(image==Road, axis = -1)] = (0, 0, 0)
@@ -47,7 +42,7 @@ def processMask(image, energyType):
         image[np.all(image==Barren, axis = -1)] = (255, 255, 0)
         image[np.all(image==Forest, axis = -1)] = (255, 255, 0)
         image[np.all(image==Agricultural, axis = -1)] = (255, 255, 0)
-    elif(energyType == energyTypes.Wind):
+    elif(energyType == "Wind"):
         image[np.all(image==Background, axis = -1)] = (0,0,0)
         image[np.all(image==Building, axis = -1)] = (255, 255, 0)
         image[np.all(image==Road, axis = -1)] = (0, 0, 0)
@@ -55,7 +50,7 @@ def processMask(image, energyType):
         image[np.all(image==Barren, axis = -1)] = (52, 143, 235)
         image[np.all(image==Forest, axis = -1)] = (52, 143, 235)
         image[np.all(image==Agricultural, axis = -1)] = (52, 143, 235)
-    elif(energyType == energyTypes.VWind):
+    elif(energyType == "VWind"):
         image[np.all(image==Background, axis = -1)] = (0,0,0)
         image[np.all(image==Building, axis = -1)] = (255, 255, 0)
         image[np.all(image==Road, axis = -1)] = (0, 0, 0)
@@ -83,8 +78,8 @@ def processMask(image, energyType):
     # dst has no background, road, water
     dst = cv2.merge(rgba, 4)
 
-    b, g, r = cv2.split(dst)
+    final = cv2.addWeighted(dst,0.3,mapImage,1,0.0)
 
     # Writing and saving to a new image
-    cv2.imwrite("gfg_white.png", dst)
+    cv2.imwrite("map_overlayed.png", final)
 

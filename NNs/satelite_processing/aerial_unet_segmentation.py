@@ -17,6 +17,7 @@ from keras.layers import Input, Conv2D, MaxPooling2D, concatenate, Conv2DTranspo
 from keras.layers import Rescaling
 from tqdm import tqdm
 
+####
 
 Background=[0,0,0]
 Building=[1,1,1]
