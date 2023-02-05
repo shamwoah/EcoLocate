@@ -121,15 +121,16 @@ def predict(img_path):
         # convert softmax probabilities to integer values
         predicted_img = np.argmax(prediction, axis=-1)
 
-        return predicted_img, test_img
+        # convert integer encoding to rgb values (DEBUG)
+        rgb_image = rgb_encode_mask(predicted_img)
 
-predicted_img, test_img = predict("./training_data/images/test.png")
+        # visualize model predictions (DEBUG)
+        display_images(
+            [test_img, rgb_image, rgb_image],
+            rows=1, titles=['Aerial', 'Prediction again lmao', 'Prediction']
+        )
+        
+        return predicted_img
 
-# convert integer encoding to rgb values (DEBUG)
-rgb_image = rgb_encode_mask(predicted_img)
+predicted_img = predict("./training_data/images/test.png")
 
-# visualize model predictions (DEBUG)
-display_images(
-    [test_img, rgb_image, rgb_image],
-    rows=1, titles=['Aerial', 'Prediction again lmao', 'Prediction']
-)
