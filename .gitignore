@@ -2,6 +2,8 @@ venv/
 .venv/
 
 node_modules/
+
+ipynb_checkpoints/
 .ipynb_checkpoints/
 
 api_constants.json
