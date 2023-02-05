@@ -74,4 +74,4 @@ def predict(img_path):
             rows=1, titles=['Aerial', 'Prediction again lmao', 'Prediction']
         )
 
-predict("./testimg/Screenshot 2023-02-04 173639.png")
+predict("./training_data/images/test.png")
