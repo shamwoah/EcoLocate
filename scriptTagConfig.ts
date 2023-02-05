@@ -1,4 +1,4 @@
-import data from './src/api_constants.json' assert { type: 'JSON' };
+import data from './api_constants.json' assert { type: 'JSON' };
 var token = data["maps_sdk_key"];
 
 const apiScriptTag = document.createElement("script");
