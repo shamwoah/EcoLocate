@@ -26,6 +26,10 @@ Barren=[4,4,4]
 Forest=[5,5,5]
 Agricultural=[6,6,6]
 
+# ini. list of finished images
+finishedImages = []
+finishedMasks = []
+
 # =======================================================
 # image preprocessing
 def load_masks_and_patchify(directory_path, patch_size):
@@ -38,10 +42,23 @@ def load_masks_and_patchify(directory_path, patch_size):
     # initialize empty list for images
     instances = []
 
+    # ini. count for how many images processed 
+    imgCount = 0
+
     # iterate through files in directory
     for file_number, filepath in tqdm(enumerate(os.listdir(directory_path))):
+        if(finishedImages[os.path.basename(filepath)] == 1):
+            break
+
+        finishedImages[os.path.basename(filepath)] == 1
+
+        if(imgCount == 50):
+            break
+
         extension = filepath.split(".")[-1]
         if extension == "jpg" or extension == "png":
+
+            imgCount = imgCount + 1
 
             # current image path
             img_path = rf"{directory_path}/{filepath}"
@@ -93,8 +110,19 @@ def load_images_and_patchify(directory_path, patch_size):
     # initialize empty list for images
     instances = []
 
+    # ini. count for how many images processed 
+    imgCount = 0
+
     # iterate through files in directory
     for file_number, filepath in tqdm(enumerate(os.listdir(directory_path))):
+        if(finishedMasks[os.path.basename(filepath)] == 1):
+            break
+
+        finishedMasks[os.path.basename(filepath)] == 1
+
+        if(imgCount == 50):
+            break
+
         extension = filepath.split(".")[-1]
         if extension == "jpg" or extension == "png":
 
@@ -311,36 +339,6 @@ def jaccard_index(y_true, y_pred):
     intersection = K.sum(y_true_f * y_pred_f)
     return (intersection + 1.0) / (K.sum(y_true_f) + K.sum(y_pred_f) - intersection + 1.0)
 
-
-# =====================================================
-# get training data
-
-
-# number of classes in segmentation dataset
-n_classes = 7
-
-# dataset directory
-data_dir = "./training_data"
-
-# create (X, Y) training data
-X, Y = get_training_data(root_directory=data_dir)
-
-# extract X_train shape parameters
-m, img_height, img_width, img_channels = X.shape
-print('number of patched image training data:', m)
-
-# display images from both training and test sets
-display_count = 6
-random_index = [np.random.randint(0, m) for _ in range(display_count)]
-sample_images = [x for z in zip(list(X[random_index]), list(Y[random_index])) for x in z]
-display_images(sample_images, rows=2)
-
-# convert RGB values to integer encoded labels for categorical_crossentropy
-Y = one_hot_encode_masks(Y, num_classes=n_classes)
-
-# split dataset into training and test groups
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.10, random_state=42)
-
 # =====================================================
 # define U-Net model architecture
 
@@ -382,36 +380,66 @@ def build_unet(img_shape):
 
     return Model(inputs=inputs, outputs=outputs)
 
+# =====================================================
+# get training data
 
-# build model
-model = build_unet(img_shape=(img_height, img_width, img_channels))
-model.summary()
+# number of classes in segmentation dataset
+n_classes = 7
 
-# =======================================================
-# add callbacks, compile model and fit training data
+# dataset directory
+data_dir = "./training_data"
 
-# save best model with maximum validation accuracy
-checkpoint = ModelCheckpoint(model_checkpoint_filepath, monitor="val_accuracy", verbose=1, save_best_only=True,
-                             mode="max")
+for i in range(50):
 
-# stop model training early if validation loss doesn't continue to decrease over 2 iterations
-early_stopping = EarlyStopping(monitor="val_loss", patience=2, verbose=1, mode="min")
+    # create (X, Y) training data
+    X, Y = get_training_data(root_directory=data_dir)
 
-# log training console output to csv
-csv_logger = CSVLogger(csv_logger, separator=",", append=False)
+    # extract X_train shape parameters
+    m, img_height, img_width, img_channels = X.shape
+    print('number of patched image training data:', m)
 
-# create list of callbacks
-callbacks_list = [checkpoint, csv_logger]  # early_stopping
+    # display images from both training and test sets
+    display_count = 6
+    random_index = [np.random.randint(0, m) for _ in range(display_count)]
+    sample_images = [x for z in zip(list(X[random_index]), list(Y[random_index])) for x in z]
+    display_images(sample_images, rows=2)
 
-# compile model
-model.compile(optimizer="adam", loss="categorical_crossentropy",
-              metrics=["accuracy", iou_coefficient, jaccard_index])
+    # convert RGB values to integer encoded labels for categorical_crossentropy
+    Y = one_hot_encode_masks(Y, num_classes=n_classes)
 
-# train and save model
-model.fit(X_train, Y_train, epochs=20, batch_size=32, validation_data=(X_test, Y_test), callbacks=callbacks_list,
-          verbose=1)
-model.save(model_save_path)
-print("model saved:", model_save_path)
+    # split dataset into training and test groups
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.10, random_state=42)
+
+    if(i==0):
+        # build model
+        model = build_unet(img_shape=(img_height, img_width, img_channels))
+        model.summary()
+
+    # =======================================================
+    # add callbacks, compile model and fit training data
+
+    # save best model with maximum validation accuracy
+    checkpoint = ModelCheckpoint(model_checkpoint_filepath, monitor="val_accuracy", verbose=1, save_best_only=True,
+                                mode="max")
+
+    # stop model training early if validation loss doesn't continue to decrease over 2 iterations
+    early_stopping = EarlyStopping(monitor="val_loss", patience=2, verbose=1, mode="min")
+
+    # log training console output to csv
+    csv_logger = CSVLogger(csv_logger, separator=",", append=False)
+
+    # create list of callbacks
+    callbacks_list = [checkpoint, csv_logger]  # early_stopping
+
+    # compile model
+    model.compile(optimizer="adam", loss="categorical_crossentropy",
+                metrics=["accuracy", iou_coefficient, jaccard_index])
+
+    # train and save model
+    model.fit(X_train, Y_train, epochs=1, batch_size=32, validation_data=(X_test, Y_test), callbacks=callbacks_list,
+            verbose=1)
+    model.save(model_save_path)
+    print("model saved:", model_save_path)
 
 # =====================================================
 # load pre-trained model
@@ -437,7 +465,6 @@ def rgb_encode_mask(mask):
         # convert single integer channel to RGB channels
         rgb_encode_image[(mask == j)] = np.array(cls.value) / 255.
     return rgb_encode_image
-
 
 for _ in range(20):
     # choose random number from 0 to test set size

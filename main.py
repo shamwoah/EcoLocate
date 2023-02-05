@@ -5,15 +5,71 @@ from enum import Enum
 import cv2
 from PIL import Image
 from patchify import patchify
-from NNs.satelite_processing.aerial_unet_segmentation import iou_coefficient, jaccard_index , rgb_encode_mask, display_images
+from keras import backend as K
+import matplotlib.pyplot as plt
+
+# =======================================================
+# training metrics
+
+# Mean Intersection-Over-Union: iou = true_positives / (true_positives + false_positives + false_negatives)
+def iou_coefficient(y_true, y_pred, smooth=1):
+    intersection = K.sum(K.abs(y_true * y_pred), axis=[1, 2, 3])
+    union = K.sum(y_true, [1, 2, 3]) + K.sum(y_pred, [1, 2, 3]) - intersection
+    iou = K.mean((intersection + smooth) / (union + smooth), axis=0)
+    return iou
+
+# mask color codes
+class MaskColorMap(Enum):
+    Background=(255, 255, 255)
+    Building=(255, 0, 0)
+    Road=(255, 255, 0)
+    Water=(0, 0, 255)
+    Barren=(159, 129, 183)
+    Forest=(0, 255, 0)
+    Agricultural=(255, 195, 128)
+
+# jaccard similarity: the size of the intersection divided by the size of the union of two sets
+def jaccard_index(y_true, y_pred):
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (intersection + 1.0) / (K.sum(y_true_f) + K.sum(y_pred_f) - intersection + 1.0)
+
+def rgb_encode_mask(mask):
+    # initialize rgb image with equal spatial resolution
+    rgb_encode_image = np.zeros((mask.shape[0], mask.shape[1], 3))
+
+    # iterate over MaskColorMap
+    for j, cls in enumerate(MaskColorMap):
+        # convert single integer channel to RGB channels
+        rgb_encode_image[(mask == j)] = np.array(cls.value) / 255.
+    return rgb_encode_image
+
+def display_images(instances, rows=2, titles=None):
+    """
+    :param instances:  list of images
+    :param rows: number of rows in subplot
+    :param titles: subplot titles
+    :return:
+    """
+    n = len(instances)
+    cols = n // rows if (n / rows) % rows == 0 else (n // rows) + 1
+
+    # iterate through images and display subplots
+    for j, image in enumerate(instances):
+        plt.subplot(rows, cols, j + 1)
+        plt.title('') if titles is None else plt.title(titles[j])
+        plt.axis("off")
+        plt.imshow(image)
+
+    # show the figure
+    plt.show()
 
 path = './NNs/satelite_processing/models/segmentation.hdf5'
 custom_objects={'iou_coefficient': iou_coefficient, 'jaccard_index': jaccard_index}
 
 model = tf.keras.models.load_model(path, custom_objects)
 model.summary()
-
-predictPath = ''
 
 def load_single_image_and_patchify(img_path):
 
@@ -65,13 +121,16 @@ def predict(img_path):
         # convert softmax probabilities to integer values
         predicted_img = np.argmax(prediction, axis=-1)
 
-        # convert integer encoding to rgb values
+        # convert integer encoding to rgb values (DEBUG)
         rgb_image = rgb_encode_mask(predicted_img)
 
-        # visualize model predictions
+        # visualize model predictions (DEBUG)
         display_images(
             [test_img, rgb_image, rgb_image],
             rows=1, titles=['Aerial', 'Prediction again lmao', 'Prediction']
         )
+        
+        return predicted_img
 
-predict("./training_data/images/test.png")
+predicted_img = predict("./training_data/images/test.png")
+
