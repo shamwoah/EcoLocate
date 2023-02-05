@@ -100,10 +100,6 @@ function initMap() {
         var apiImgTag = document.getElementById('staticmap')!;
         staticMap = new URL(`https://maps.googleapis.com/maps/api/staticmap?center=${Location.lat},${Location.lng}&zoom=14&size=640x640&scale=2&format=png&maptype=satellite&key=AIzaSyDUmfFb_52uU1LA8wmWVWLS7veo8Wld3X4`);
         document.getElementById('staticmap')!.setAttribute("src", staticMap.href);
-
-        downloadImage(staticMap.href,'/images/maps')
-            .then(console.log)
-            .catch(console.error)
     });
 }
 
