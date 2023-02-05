@@ -1,13 +1,13 @@
 import data from './api_constants.json' assert { type: 'JSON' };
 const token = data["maps_sdk_key"];
 
-const fs = require('fs');
-const client = require('https');
-
 var staticMap = new URL(`https://maps.googleapis.com/maps/api/staticmap?center=40,20&zoom=14&size=640x640&scale=2&format=png&maptype=satellite&key=AIzaSyDUmfFb_52uU1LA8wmWVWLS7veo8Wld3X4`);
 document.getElementById('staticmap')!.setAttribute("src", staticMap.href);
 
 function downloadImage(url, filepath) {
+    const fs = require('fs');
+    const client = require('https');
+
     return new Promise((resolve, reject) => {
         client.get(url, (res) => {
             if (res.statusCode === 200) {
