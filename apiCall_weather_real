@@ -1,0 +1,17 @@
+interface Data {
+  // The structure of the response data
+  setresponse: JSON;
+  name: string;
+  age: number;
+}
+
+fetch('https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=a2bc44f0f6e89d7d610d239bdf435b37')
+
+  .then(response =>  {
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+    return response.json() as Promise<Data>;
+  })
+  .then(data => console.log(data))
+  .catch(error => console.error(error));
