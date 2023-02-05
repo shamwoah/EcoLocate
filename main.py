@@ -3,18 +3,9 @@ from tensorflow import keras
 import numpy as np
 from enum import Enum
 import cv2
-import matplotlib.pyplot as plt
 from PIL import Image
-from keras import backend as K
-from keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping
-from keras.models import Model, load_model
-from keras.utils import to_categorical
 from patchify import patchify
-from sklearn.model_selection import train_test_split
-from keras.layers import Input, Conv2D, MaxPooling2D, concatenate, Conv2DTranspose, Dropout
-from keras.layers import Rescaling
-from tqdm import tqdm
-from NNs.satelite_processing.aerial_unet_segmentation import load_images_and_patchify, iou_coefficient, jaccard_index, MaskColorMap, rgb_encode_mask, display_images
+from NNs.satelite_processing.aerial_unet_segmentation import iou_coefficient, jaccard_index , rgb_encode_mask, display_images
 
 path = './NNs/satelite_processing/models/segmentation.hdf5'
 custom_objects={'iou_coefficient': iou_coefficient, 'jaccard_index': jaccard_index}
@@ -83,4 +74,4 @@ def predict(img_path):
             rows=1, titles=['Aerial', 'Prediction again lmao', 'Prediction']
         )
 
-predict("./testimg/image_part_005.jpg")
+predict("./testimg/Screenshot 2023-02-04 173639.png")

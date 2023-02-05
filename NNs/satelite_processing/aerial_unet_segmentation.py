@@ -169,7 +169,7 @@ def create_binary_segmentation_problem(image_dataset, mask_dataset):
                 rgb = mask[row, col, :]
 
                 # building hex: #3C1098 = RGB(60, 16, 152) or BGR(152, 16, 60)
-                binary_image[row, col] = 1 if rgb[0] == 60 and rgb[1] == 16 and rgb[2] == 152 else 0
+                binary_image[row, col] = 1 if rgb[0] == 255 and rgb[1] == 0 and rgb[2] == 0 else 0
 
         # only keep images with a high percentage of building coverage
         if np.count_nonzero(binary_image == 1) > 0.15 * binary_image.size:
@@ -182,12 +182,14 @@ def create_binary_segmentation_problem(image_dataset, mask_dataset):
 
 # mask color codes
 class MaskColorMap(Enum):
-    Unlabelled = (155, 155, 155)
-    Building = (60, 16, 152)
-    Land = (132, 41, 246)
-    Road = (110, 193, 228)
-    Vegetation = (254, 221, 58)
-    Water = (226, 169, 41)
+    Background=(255, 255, 255),
+    Building=(255, 0, 0),
+    Road=(255, 255, 0),
+    Water=(0, 0, 255),
+    Barren=(159, 129, 183),
+    Forest=(0, 255, 0),
+    Agricultural=(255, 195, 128)
+
 
 
 def one_hot_encode_masks(masks, num_classes):
@@ -222,11 +224,11 @@ def one_hot_encode_masks(masks, num_classes):
 # output directories
 
 # datetime for filename saving
-#dt_now = str(datetime.datetime.now()).replace(".", "_").replace(":", "_")
-#model_img_save_path = f"{os.getcwd()}/models/final_aerial_segmentation_{dt_now}.png"
-#model_save_path = f"{os.getcwd()}/models/final_aerial_segmentation_{dt_now}.hdf5"
-#model_checkpoint_filepath = os.getcwd() + "/models/weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
-#csv_logger = rf"{os.getcwd()}/logs/aerial_segmentation_log_{dt_now}.csv"
+dt_now = str(datetime.datetime.now()).replace(".", "_").replace(":", "_")
+model_img_save_path = f"{os.getcwd()}/models/final_aerial_segmentation_{dt_now}.png"
+model_save_path = f"{os.getcwd()}/models/final_aerial_segmentation_{dt_now}.hdf5"
+model_checkpoint_filepath = os.getcwd() + "/models/weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
+csv_logger = rf"{os.getcwd()}/logs/aerial_segmentation_log_{dt_now}.csv"
 
 
 # =======================================================
@@ -252,29 +254,29 @@ def jaccard_index(y_true, y_pred):
 # get training data
 
 # number of classes in segmentation dataset
-#n_classes = 6
+n_classes = 7
 
 # dataset directory
-#data_dir = r"semantic-segmentation-dataset"
+data_dir = r"semantic-segmentation-dataset"
 
 # create (X, Y) training data
-#X, Y = get_training_data(root_directory=data_dir)
+X, Y = get_training_data(root_directory=data_dir)
 
 # extract X_train shape parameters
-#m, img_height, img_width, img_channels = X.shape
-#print('number of patched image training data:', m)
+m, img_height, img_width, img_channels = X.shape
+print('number of patched image training data:', m)
 
 # display images from both training and test sets
-#display_count = 6
-#random_index = [np.random.randint(0, m) for _ in range(display_count)]
-#sample_images = [x for z in zip(list(X[random_index]), list(Y[random_index])) for x in z]
-#display_images(sample_images, rows=2)
+display_count = 6
+random_index = [np.random.randint(0, m) for _ in range(display_count)]
+sample_images = [x for z in zip(list(X[random_index]), list(Y[random_index])) for x in z]
+display_images(sample_images, rows=2)
 
 # convert RGB values to integer encoded labels for categorical_crossentropy
-#Y = one_hot_encode_masks(Y, num_classes=n_classes)
+Y = one_hot_encode_masks(Y, num_classes=n_classes)
 
 # split dataset into training and test groups
-#X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.10, random_state=42)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.10, random_state=42)
 
 
 # =====================================================
@@ -320,40 +322,40 @@ def build_unet(img_shape):
 
 
 # build model
-#model = build_unet(img_shape=(img_height, img_width, img_channels))
-#model.summary()
+model = build_unet(img_shape=(img_height, img_width, img_channels))
+model.summary()
 
 # =======================================================
 # add callbacks, compile model and fit training data
 
 # save best model with maximum validation accuracy
-#checkpoint = ModelCheckpoint(model_checkpoint_filepath, monitor="val_accuracy", verbose=1, save_best_only=True,
-#                             mode="max")
+checkpoint = ModelCheckpoint(model_checkpoint_filepath, monitor="val_accuracy", verbose=1, save_best_only=True,
+                             mode="max")
 
 # stop model training early if validation loss doesn't continue to decrease over 2 iterations
-#early_stopping = EarlyStopping(monitor="val_loss", patience=2, verbose=1, mode="min")
+early_stopping = EarlyStopping(monitor="val_loss", patience=2, verbose=1, mode="min")
 
 # log training console output to csv
-#csv_logger = CSVLogger(csv_logger, separator=",", append=False)
+csv_logger = CSVLogger(csv_logger, separator=",", append=False)
 
 # create list of callbacks
-#callbacks_list = [checkpoint, csv_logger]  # early_stopping
+callbacks_list = [checkpoint, csv_logger]  # early_stopping
 
 # compile model
-#model.compile(optimizer="adam", loss="categorical_crossentropy",
-#              metrics=["accuracy", iou_coefficient, jaccard_index])
+model.compile(optimizer="adam", loss="categorical_crossentropy",
+              metrics=["accuracy", iou_coefficient, jaccard_index])
 
 # train and save model
-#model.fit(X_train, Y_train, epochs=20, batch_size=32, validation_data=(X_test, Y_test), callbacks=callbacks_list,
-#          verbose=1)
-#model.save(model_save_path)
-#print("model saved:", model_save_path)
+model.fit(X_train, Y_train, epochs=20, batch_size=32, validation_data=(X_test, Y_test), callbacks=callbacks_list,
+          verbose=1)
+model.save(model_save_path)
+print("model saved:", model_save_path)
 
 # =====================================================
 # load pre-trained model
 
-#model_dir = '/Users/andrewdavies/Code/tensorflow-projects/u-net-aerial-imagery-segmentation/models/'
-#model_name = 'final_aerial_segmentation_2022-11-09 22_37_27_640199.hdf5'
+model_dir = '/Users/andrewdavies/Code/tensorflow-projects/u-net-aerial-imagery-segmentation/models/'
+model_name = 'final_aerial_segmentation_2022-11-09 22_37_27_640199.hdf5'
 
 # model = load_model(
 #     model_dir + model_name,
@@ -375,31 +377,31 @@ def rgb_encode_mask(mask):
     return rgb_encode_image
 
 
-#for _ in range(20):
+for _ in range(20):
     # choose random number from 0 to test set size
-    #test_img_number = np.random.randint(0, len(X_test))
+    test_img_number = np.random.randint(0, len(X_test))
 
     # extract test input image
-    #test_img = X_test[test_img_number]
+    test_img = X_test[test_img_number]
 
     # ground truth test label converted from one-hot to integer encoding
-    #ground_truth = np.argmax(Y_test[test_img_number], axis=-1)
+    ground_truth = np.argmax(Y_test[test_img_number], axis=-1)
 
     # expand first dimension as U-Net requires (m, h, w, nc) input shape
-    #test_img_input = np.expand_dims(test_img, 0)
+    test_img_input = np.expand_dims(test_img, 0)
 
     # make prediction with model and remove extra dimension
-    #prediction = np.squeeze(model.predict(test_img_input))
+    prediction = np.squeeze(model.predict(test_img_input))
 
     # convert softmax probabilities to integer values
-    #predicted_img = np.argmax(prediction, axis=-1)
+    predicted_img = np.argmax(prediction, axis=-1)
 
     # convert integer encoding to rgb values
-    #rgb_image = rgb_encode_mask(predicted_img)
-    #rgb_ground_truth = rgb_encode_mask(ground_truth)
+    rgb_image = rgb_encode_mask(predicted_img)
+    rgb_ground_truth = rgb_encode_mask(ground_truth)
 
     # visualize model predictions
-    #display_images(
-        #[test_img, rgb_ground_truth, rgb_image],
-        #rows=1, titles=['Aerial', 'Ground Truth', 'Prediction']
-    #)
+    display_images(
+        [test_img, rgb_ground_truth, rgb_image],
+        rows=1, titles=['Aerial', 'Ground Truth', 'Prediction']
+    )
