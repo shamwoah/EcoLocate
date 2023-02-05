@@ -26,10 +26,6 @@ Barren=[4,4,4]
 Forest=[5,5,5]
 Agricultural=[6,6,6]
 
-# ini. list of finished images
-finishedImages = []
-finishedMasks = []
-
 # =======================================================
 # image preprocessing
 def load_masks_and_patchify(directory_path, patch_size):
@@ -42,23 +38,11 @@ def load_masks_and_patchify(directory_path, patch_size):
     # initialize empty list for images
     instances = []
 
-    # ini. count for how many images processed 
-    imgCount = 0
-
     # iterate through files in directory
     for file_number, filepath in tqdm(enumerate(os.listdir(directory_path))):
-        if(finishedImages[os.path.basename(filepath)] == 1):
-            break
-
-        finishedImages[os.path.basename(filepath)] == 1
-
-        if(imgCount == 50):
-            break
 
         extension = filepath.split(".")[-1]
         if extension == "jpg" or extension == "png":
-
-            imgCount = imgCount + 1
 
             # current image path
             img_path = rf"{directory_path}/{filepath}"
@@ -110,18 +94,8 @@ def load_images_and_patchify(directory_path, patch_size):
     # initialize empty list for images
     instances = []
 
-    # ini. count for how many images processed 
-    imgCount = 0
-
     # iterate through files in directory
     for file_number, filepath in tqdm(enumerate(os.listdir(directory_path))):
-        if(finishedMasks[os.path.basename(filepath)] == 1):
-            break
-
-        finishedMasks[os.path.basename(filepath)] == 1
-
-        if(imgCount == 50):
-            break
 
         extension = filepath.split(".")[-1]
         if extension == "jpg" or extension == "png":
